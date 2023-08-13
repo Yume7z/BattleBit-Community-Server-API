@@ -16,7 +16,7 @@ class Program
 }
 class MyPlayer : Player<MyPlayer>
 {
-    public bool IsZombie;
+    
 }
 class MyGameServer : GameServer<MyPlayer>
 {
@@ -30,76 +30,41 @@ class MyGameServer : GameServer<MyPlayer>
 
     public override async Task OnPlayerConnected(MyPlayer player)
     {
-        bool anyZombiePlayer = false;
-        foreach (var item in AllPlayers)
-        {
-            if (item.IsZombie)
-            {
-                anyZombiePlayer = true;
-                break;
-            }
-        }
+        if(player.Team == Team.TeamA)
+            RoundSettings.TeamATickets++;
+        else
+            RoundSettings.TeamBTickets++;
+    }
 
-        if (!anyZombiePlayer)
-        {
-            player.IsZombie = true;
-            player.Message("You are the zombie.");
-            player.Kill();
-        }
+    public override async Task OnPlayerDisconnected(MyPlayer player)
+    {
+        if(player.Team == Team.TeamA)
+            RoundSettings.TeamATickets--;
+        else
+            RoundSettings.TeamBTickets--;
     }
 
     public override async Task OnAPlayerKilledAnotherPlayer(OnPlayerKillArguments<MyPlayer> args)
     {
-        if (args.Victim.IsZombie)
-        {
-            args.Victim.IsZombie = false;
-            args.Victim.Message("You are no longer zombie");
-
-            AnnounceShort("Choosing new zombie in 5");
-            await Task.Delay(1000);
-            AnnounceShort("Choosing new zombie in 4");
-            await Task.Delay(1000);
-            AnnounceShort("Choosing new zombie in 3");
-            await Task.Delay(1000);
-            AnnounceShort("Choosing new zombie in 2");
-            await Task.Delay(1000);
-            AnnounceShort("Choosing new zombie in 1");
-            await Task.Delay(1000);
-
-            args.Killer.IsZombie = true;
-            args.Killer.SetHeavyGadget(Gadgets.SledgeHammer.ToString(), 0, true);
-
-            var position = args.Killer.GetPosition();
-        }
+        if (args.Victim.Team == Team.TeamA)
+            RoundSettings.TeamBTickets++;
+        else 
+            RoundSettings.TeamATickets++;
+            
+        args.Victim.Message("Switching teams");
+        args.Victim.ChangeTeam();
+        AnnounceShort("Test");
     }
 
 
     public override async Task<OnPlayerSpawnArguments> OnPlayerSpawning(MyPlayer player, OnPlayerSpawnArguments request)
     {
-        if (player.IsZombie)
-        {
-            request.Loadout.PrimaryWeapon = default;
-            request.Loadout.SecondaryWeapon = default;
-            request.Loadout.LightGadget = null;
-            request.Loadout.HeavyGadget = Gadgets.SledgeHammer;
-            request.Loadout.Throwable = null;
-        }
-
         return request;
     }
     public override async Task OnPlayerSpawned(MyPlayer player)
     {
-        if(player.IsZombie)
-        {
-            player.SetRunningSpeedMultiplier(2f);
-            player.SetJumpMultiplier(2f);
-            player.SetFallDamageMultiplier(0f);
-            player.SetReceiveDamageMultiplier(0.1f);
-            player.SetGiveDamageMultiplier(4f);
-        }
+        player.SetFallDamageMultiplier(0f);
     }
-
-
 
     public override async Task OnConnected()
     {
