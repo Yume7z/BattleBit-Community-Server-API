@@ -23,6 +23,8 @@ class MyGameServer : GameServer<MyPlayer>
 
     public override async Task OnRoundStarted()
     {
+        RoundSettings.TeamATickets = this.GetPlayersInTeam(Team.TeamA).Count();
+        RoundSettings.TeamBTickets = this.GetPlayersInTeam(Team.TeamB).Count();
     }
     public override async Task OnRoundEnded()
     {

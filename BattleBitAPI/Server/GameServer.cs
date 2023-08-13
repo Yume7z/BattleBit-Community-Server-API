@@ -220,6 +220,19 @@ namespace BattleBitAPI.Server
                 return list;
             }
         }
+
+        public IEnumerable<TPlayer> GetPlayersInTeam(Team team)
+        {
+            var list = new List<TPlayer>(this.mInternal.Players.Values.Count);
+            lock (this.mInternal.Players)
+            {
+                foreach (var item in this.mInternal.Players.Values)
+                    if( ((TPlayer)item).Team == team )
+                        list.Add((TPlayer)item);
+            }
+            return list;
+        }
+        
         public bool TryGetPlayer(ulong steamID, out TPlayer player)
         {
             lock (this.mInternal.Players)
